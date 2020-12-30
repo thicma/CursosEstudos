@@ -59,9 +59,27 @@ class TestLeilao(TestCase):
 
     #se o ultimo usuario for o mesmo, não deve permitir propor lance
     def test_nao_deve_pemitir_propor_um_lance_caso_o_ultimo_usuario_seja_o_mesmo(self):
-        
+        novo_lance_Thiago = Lance(self.thiago, 50)
         with self.assertRaises(ValueError):
             self.leilao.propoe_lance(self.lance_do_Thiago)
+            self.leilao.propoe_lance(novo_lance_Thiago)
+    
+    def test_deve_permitir_propor_novo_lance_apenas_maior_que_o_anterior(self):
+        novo_lance_Thiago = Lance(self.thiago, 150)
+        with self.assertRaises(ValueError):
             self.leilao.propoe_lance(self.lance_do_Thiago)
+            self.leilao.propoe_lance(self.lance_da_Juliana)
+            self.leilao.propoe_lance(novo_lance_Thiago)
+
+    def test_não_deve_permitir_propor_novo_lance_apenas_maior_que_o_anterior(self):
+        novo_lance_Thiago = Lance(self.thiago, 50)
+        with self.assertRaises(ValueError):
+            self.leilao.propoe_lance(self.lance_do_Thiago)
+            self.leilao.propoe_lance(self.lance_da_Juliana)
+            self.leilao.propoe_lance(novo_lance_Thiago)
+        
+
+            
+            
 
         
