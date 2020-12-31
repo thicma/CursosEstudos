@@ -5,9 +5,9 @@ from dominio import Usuario, Lance, Leilao
 class TestLeilao(TestCase):
 #setUp invoca semrpe que tiver um teste, este cenário.
     def setUp(self):
-        self.thiago = Usuario('Thiago')
-        self.thicma = Usuario('Thicma')
-        self.juliana = Usuario('Juliana')
+        self.thiago = Usuario('Thiago', 500)
+        self.thicma = Usuario('Thicma',500)
+        self.juliana = Usuario('Juliana',500)
 
         self.lance_do_Thiago = Lance(self.thiago, 100)
         self.lance_do_thicma = Lance(self.thicma, 150)
@@ -64,19 +64,19 @@ class TestLeilao(TestCase):
             self.leilao.propoe_lance(self.lance_do_Thiago)
             self.leilao.propoe_lance(novo_lance_Thiago)
     
-    def test_deve_permitir_propor_novo_lance_apenas_maior_que_o_anterior(self):
-        novo_lance_Thiago = Lance(self.thiago, 150)
-        with self.assertRaises(ValueError):
-            self.leilao.propoe_lance(self.lance_do_Thiago)
-            self.leilao.propoe_lance(self.lance_da_Juliana)
-            self.leilao.propoe_lance(novo_lance_Thiago)
+    # def test_deve_permitir_propor_novo_lance_apenas_maior_que_o_anterior(self):
+    #     novo_lance_Thiago = Lance(self.thiago, 150)
+    #     with self.assertRaises(ValueError):
+    #         self.leilao.propoe_lance(self.lance_do_Thiago)
+    #         self.leilao.propoe_lance(self.lance_da_Juliana)
+    #         self.leilao.propoe_lance(novo_lance_Thiago)
 
-    def test_não_deve_permitir_propor_novo_lance_apenas_maior_que_o_anterior(self):
-        novo_lance_Thiago = Lance(self.thiago, 50)
-        with self.assertRaises(ValueError):
-            self.leilao.propoe_lance(self.lance_do_Thiago)
-            self.leilao.propoe_lance(self.lance_da_Juliana)
-            self.leilao.propoe_lance(novo_lance_Thiago)
+    # def test_não_deve_permitir_propor_novo_lance_apenas_maior_que_o_anterior(self):
+    #     novo_lance_Thiago = Lance(self.thiago, 50)
+    #     with self.assertRaises(ValueError):
+    #         self.leilao.propoe_lance(self.lance_do_Thiago)
+    #         self.leilao.propoe_lance(self.lance_da_Juliana)
+    #         self.leilao.propoe_lance(novo_lance_Thiago)
         
 
             
