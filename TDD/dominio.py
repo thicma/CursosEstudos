@@ -43,17 +43,12 @@ class Leilao:
         # if len(self.__lances) == 0 or self.__lances[-1].usuario != lance.usuario:  
         if not self.__lances or self.__lances[-1].usuario != lance.usuario:  
             if lance.valor > self.maior_lance:
-                self.maior_lance =  lance.valor
+                self.maior_lance = lance.valor
             if lance.valor < self.menor_lance:
                 self.menor_lance = lance.valor
             self.__lances.append(lance)
-        elif lance.usuario in self.__lances:
-            # if self.__lances[-1].valor < lance.valor:
-            raise ValueError('O valor do lance do usuário deve ser maior que o lance anterior.')
-            # else:
-            #     self.__lances.append(lance)
         else:
-            raise ValueError('O mesmo usuário não pode propor dois lances seguidos!')
+            raise ValueError('Erro ao propor lance!')
 
     
     
