@@ -4,6 +4,7 @@ import random
 
 pygame.init()
 screen = pygame.display.set_mode((800,600), 0)
+size= 600 // 30
 
 fonte = pygame.font.SysFont('arial', 24, True, False)
 AMARELO = (255,255,0)
@@ -55,8 +56,9 @@ class Cenario(ElementosJogo):
         self.moviveis = []
         self.tamanho = tamanho
         self.pontos = 0
-        #estados possiveis 0-Jogando 1-Pausado 2-GameOver 3-Ganhou
-        self.estados = 0
+        #estado possiveis 0-Jogando 1-Pausado 2-GameOver 3-Ganhou
+        self.estado = 0
+        self.vidas = 1
         self.matriz = [
             [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
             [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
@@ -104,7 +106,9 @@ class Cenario(ElementosJogo):
     def pintar_pontos(self, tela):
         pontos_x = 30 * self.tamanho
         img_pontos = fonte.render(f"Score: {self.pontos}", True, AMARELO)
+        vidas_img = fonte.render(f'Vidas: {self.vidas}', True, AMARELO)
         tela.blit(img_pontos, (pontos_x, 50))
+        tela.blit(vidas_img,(pontos_x, 100))
     
     def pintar_linha(self, tela, numero_linha, linha):
         for numero_coluna, coluna in enumerate(linha):
@@ -125,15 +129,15 @@ class Cenario(ElementosJogo):
         tela.blit(texto_img, (texto_x, texto_y))
 
     def pintar(self, tela):
-        if self.estados == 0:
+        if self.estado == 0:
             self.pintar_jogando(tela)
-        elif self.estados == 1:
+        elif self.estado == 1:
             self.pintar_jogando(tela)
             self.pintar_texto_pausado(tela)
-        elif self.estados == 2:
+        elif self.estado == 2:
             self.pintar_jogando(tela)
             self.pintar_texto_game_over(tela)
-        elif self.estados == 3:
+        elif self.estado == 3:
             self.pintar_jogando(tela)
             self.pintar_vitoria(tela)
 
@@ -144,7 +148,7 @@ class Cenario(ElementosJogo):
         self.pintar_texto(tela, 'G A M E  O V E R')
 
     def pintar_vitoria(self, tela):
-        self.pintar_texto(tela, 'V I T Ó R I A')
+        self.pintar_texto(tela, 'V I T Ó R I A \n JOGAR NOVAMENTE? S - SIM / N-NÃO')
 
     def pintar_jogando(self, tela):
         for numero_linha, linha in enumerate(self.matriz):
@@ -154,12 +158,20 @@ class Cenario(ElementosJogo):
 
 
     def calcular_regras(self):
-        if self.estados == 0:
+        if self.estado == 0:
             self.calcular_regras_jogando()
-        elif self.estados == 1:
+        elif self.estado == 1:
             self.calcular_regras_pausado()
-        elif self.estados == 2:
+        elif self.estado == 2:
             self.calcular_regras_gameover()
+        elif self.estado == 3:
+            self.calcular_regras_vitoria()
+    
+    def calcular_regras_vitoria(self):
+        pass
+
+            
+
     
     def calcular_regras_gameover(self):
         pass
@@ -175,10 +187,17 @@ class Cenario(ElementosJogo):
             coluna_intencao = int(movivel.coluna_intencao)
             direcoes = self.get_direcoes(linha, coluna)
 
+
             if len(direcoes) >= 3:
                 movivel.esquina(direcoes)
             if isinstance(movivel, Fantasma) and movivel.linha == self.pacman.linha and movivel.coluna == self.pacman.coluna:
-                self.estados = 2          
+                self.vidas -= 1
+                if self.vidas <= 0:
+                    self.estado = 2
+                else:
+                    self.pacman.linha_intencao = 1
+                    self.pacman.coluna_intencao = 1                    
+                         
             else:
                 if 0 <= coluna_intencao < 28 and 0 <= linha_intencao < 29 and self.matriz[linha_intencao][coluna_intencao] != 2:
                     movivel.aceitar_movimento()
@@ -188,7 +207,7 @@ class Cenario(ElementosJogo):
                 else:
                     movivel.recusar_movimento(direcoes)
             if self.pontos == self.soma_total:
-                self.estados = 3
+                self.estado = 3
 
     def processar_eventos(self, eventos):
         for e in eventos:
@@ -196,10 +215,14 @@ class Cenario(ElementosJogo):
                 exit()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_p:
-                    if self.estados == 0:
-                        self.estados = 1
+                    if self.estado == 0:
+                        self.estado = 1
                     else:
-                        self.estados = 0
+                        self.estado = 0
+                if e.key == pygame.K_s:
+                    self.estado = 0
+
+                    
     
     def get_direcoes(self, linha, coluna):
         direcoes = []
@@ -368,42 +391,89 @@ class Fantasma(ElementosJogo, Movivel):
     def processar_eventos(self, eventos):
         pass
 
+class Jogando:
+    def __init__(self):
+        self.iniciar(size)
+
+    def iniciar(self, size):
+        self.pacman = Pacman(size)
+        self.blink = Fantasma(VERMELHO, size)
+        self.inky = Fantasma(CIANO, size)
+        self.clayde = Fantasma(LARANJA, size)
+        self.pinky = Fantasma(ROSA, size)
+        self.cenario = Cenario(size, self.pacman)
+        self.cenario.adicionar_movivel(self.pacman)
+        self.cenario.adicionar_movivel(self.blink)
+        self.cenario.adicionar_movivel(self.inky)
+        self.cenario.adicionar_movivel(self.clayde)
+        self.cenario.adicionar_movivel(self.pinky)
+
+        while True:
+            #Calcular as regras
+            self.pacman.calcular_regras()
+            self.cenario.calcular_regras()
+            self.blink.calcular_regras()
+            self.inky.calcular_regras()
+            self.clayde.calcular_regras()
+            self.pinky.calcular_regras()
+            # Pintar a tela
+            screen.fill(PRETO)
+            self.cenario.pintar(screen)
+            self.pacman.pintar(screen)
+            self.blink.pintar(screen)
+            self.inky.pintar(screen)
+            self.clayde.pintar(screen)
+            self.pinky.pintar(screen)
+            pygame.display.update()
+            pygame.time.delay(100)
+            
+            #Captura os eventos
+            eventos = pygame.event.get()
+            self.pacman.processar_eventos(eventos)
+            self.cenario.processar_eventos(eventos)
 
 if __name__ == "__main__":
-    size= 600 // 30
-    pacman = Pacman(size)
-    blink = Fantasma(VERMELHO, size)
-    inky = Fantasma(CIANO, size)
-    clayde = Fantasma(LARANJA, size)
-    pinky = Fantasma(ROSA, size)
-    cenario = Cenario(size, pacman)
-    cenario.adicionar_movivel(pacman)
-    cenario.adicionar_movivel(blink)
-    cenario.adicionar_movivel(inky)
-    cenario.adicionar_movivel(clayde)
-    cenario.adicionar_movivel(pinky)
+    jogando = Jogando()
+    # pacman = Pacman(size)
+    # blink = Fantasma(VERMELHO, size)
+    # inky = Fantasma(CIANO, size)
+    # clayde = Fantasma(LARANJA, size)
+    # pinky = Fantasma(ROSA, size)
+    # cenario = Cenario(size, pacman)
+    # cenario.adicionar_movivel(pacman)
+    # cenario.adicionar_movivel(blink)
+    # cenario.adicionar_movivel(inky)
+    # cenario.adicionar_movivel(clayde)
+    # cenario.adicionar_movivel(pinky)
 
 
-    while True:
-        #Calcular as regras
-        pacman.calcular_regras()
-        cenario.calcular_regras()
-        blink.calcular_regras()
-        inky.calcular_regras()
-        clayde.calcular_regras()
-        pinky.calcular_regras()
-        # Pintar a tela
-        screen.fill(PRETO)
-        cenario.pintar(screen)
-        pacman.pintar(screen)
-        blink.pintar(screen)
-        inky.pintar(screen)
-        clayde.pintar(screen)
-        pinky.pintar(screen)
-        pygame.display.update()
-        pygame.time.delay(100)
+
+    # while True:
+    #     #Calcular as regras
+    #     pacman.calcular_regras()
+    #     cenario.calcular_regras()
+    #     blink.calcular_regras()
+    #     inky.calcular_regras()
+    #     clayde.calcular_regras()
+    #     pinky.calcular_regras()
+    #     # Pintar a tela
+    #     screen.fill(PRETO)
+    #     cenario.pintar(screen)
+    #     pacman.pintar(screen)
+    #     blink.pintar(screen)
+    #     inky.pintar(screen)
+    #     clayde.pintar(screen)
+    #     pinky.pintar(screen)
+    #     pygame.display.update()
+    #     pygame.time.delay(100)
         
-        #Captura os eventos
-        eventos = pygame.event.get()
-        pacman.processar_eventos(eventos)
-        cenario.processar_eventos(eventos)
+    #     #Captura os eventos
+    #     eventos = pygame.event.get()
+    # pacman.processar_eventos(eventos)
+    for e in eventos:
+        if e.type == pygame.KEYDOWN:
+            if e.key == pygame.K_s:
+                jogando.iniciar()
+            elif e.key == pygame.K_s:
+                exit()
+    #     cenario.processar_eventos(eventos)
